@@ -561,20 +561,20 @@ if not st.session_state.unmatched_records.empty and not st.session_state.hubspot
         st.markdown("---")
     # Display matched and unmatched records
 
-    if st.session_state.matching_started == True and st.session_state.column_match_clicked == True:
-        st.success("Column matching completed!")
-        st.session_state.matching_started = False
-        st.session_state.column_match_clicked = False
+    # if st.session_state.matching_started == True and st.session_state.column_match_clicked == True:
+    #     st.success("Column matching completed!")
+    #     st.session_state.matching_started = False
+    #     st.session_state.column_match_clicked = False
     
-    if st.session_state.domain_matching_started == True and st.session_state.domain_match_clicked == True:
-        st.success("Domain matching completed!")
-        st.session_state.domain_matching_started = False
-        st.session_state.domain_match_clicked = False
+    # if st.session_state.domain_matching_started == True and st.session_state.domain_match_clicked == True:
+    #     st.success("Domain matching completed!")
+    #     st.session_state.domain_matching_started = False
+    #     st.session_state.domain_match_clicked = False
 
-    if st.session_state.fuzzy_matching_started == True and st.session_state.fuzzy_match_clicked == True:
-        st.success("Fuzzy matching completed!")
-        st.session_state.fuzzy_matching_started = False
-        st.session_state.fuzzy_match_clicked = False
+    # if st.session_state.fuzzy_matching_started == True and st.session_state.fuzzy_match_clicked == True:
+    #     st.success("Fuzzy matching completed!")
+    #     st.session_state.fuzzy_matching_started = False
+    #     st.session_state.fuzzy_match_clicked = False
     
     st.subheader("Matched Records")
     st.dataframe(st.session_state.matched_records)
