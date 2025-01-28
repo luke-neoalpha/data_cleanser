@@ -519,7 +519,7 @@ if not st.session_state.unmatched_records.empty and not st.session_state.hubspot
                 for _, row in st.session_state.unmatched_records.iterrows():
                     ma_value = row["Cleaned Selected Column"]  # Use the cleaned version for matching
                     best_match = process.extractOne(ma_value, hubspot_data[hubspot_col], scorer=fuzz.ratio)  # Use original HubSpot column
-                    if best_match and best_match[1] >= 87:  # Match ratio threshold
+                    if best_match and best_match[1] >= 50:  # Match ratio threshold
                         matched_hubspot = hubspot_data[hubspot_data[hubspot_col] == best_match[0]].iloc[0]
                         matched_row = pd.concat([row, matched_hubspot], axis=0).to_frame().T  # Combine rows
                         matched_row["Matched By"] = f"Fuzzy Matching ({ma_col} - {hubspot_col})"
