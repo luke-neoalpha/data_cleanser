@@ -770,8 +770,8 @@ def main_page():
                     ]
 
                     # Drop the "Extracted Domain" column from unmatched_records
-                    if "Extracted Domain" in st.session_state.unmatched_records.columns:
-                        st.session_state.unmatched_records = st.session_state.unmatched_records.drop(columns=["Extracted Domain"])
+                    # if "Extracted Domain" in st.session_state.unmatched_records.columns:
+                    #     st.session_state.unmatched_records = st.session_state.unmatched_records.drop(columns=["Extracted Domain"])
 
                     st.session_state.domain_matching_started = True
 
