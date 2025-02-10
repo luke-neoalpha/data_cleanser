@@ -1,0 +1,109 @@
+def review_page():
+    st.title("Review Fuzzy Matches")
+    st.markdown("---")
+
+    # Check if there are matches to review
+    if not st.session_state.matches_to_review.empty:
+        # Get the current match to review
+        current_match = st.session_state.matches_to_review.iloc[st.session_state.review_index]
+
+        # Extract M&A and HubSpot column names from the "Matched By" value
+        matched_by = current_match["Matched By"]
+        
+        # Improved parsing logic
+        try:
+            # Extract the part inside the last set of parentheses
+            columns_part = matched_by.split("(")[-1].rstrip(")")
+            # Split into M&A and HubSpot columns
+            ma_col, hubspot_col = columns_part.split(" - ")
+        except (IndexError, ValueError):
+            st.error(f"Unable to parse column names from 'Matched By' value: {matched_by}")
+            return
+
+        # Display match details
+        st.write(f"**Match Ratio:** {current_match['Match Ratio']}")
+        st.write(f"**M&A Column ({ma_col}):** {current_match[ma_col]}")
+        st.write(f"**HubSpot Column ({hubspot_col}):** {current_match[hubspot_col]}")
+
+        # Buttons for manual review
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Yes (Keep Match)"):
+                # Keep the match in matched_records
+                st.session_state.review_index += 1  # Move to the next match
+                if st.session_state.review_index >= len(st.session_state.matches_to_review):
+                    st.session_state.review_index = 0  # Reset if all matches are reviewed
+                    st.session_state.matches_to_review = pd.DataFrame()  # Clear reviewed matches
+                st.success("Match kept in matched records.")
+
+        with col2:
+            if st.button("No (Move to Unmatched)"):
+                # Move the match back to unmatched_records
+                match_to_move = st.session_state.matches_to_review.iloc[st.session_state.review_index:st.session_state.review_index + 1]
+                st.session_state.unmatched_records = pd.concat(
+                    [st.session_state.unmatched_records, match_to_move.drop(columns=["Matched By", "Match Ratio"])],
+                    ignore_index=True
+                )
+
+                # Remove the match from matched_records and matches_to_review
+                st.session_state.matched_records = st.session_state.matched_records[
+                    ~st.session_state.matched_records.index.isin(match_to_move.index)
+                ]
+                st.session_state.matches_to_review = st.session_state.matches_to_review[
+                    ~st.session_state.matches_to_review.index.isin(match_to_move.index)
+                ]
+
+                st.session_state.review_index = min(st.session_state.review_index, len(st.session_state.matches_to_review) - 1)
+                st.warning("Match moved back to unmatched records.")
+
+        # Show progress
+        st.write(f"Reviewing {st.session_state.review_index + 1} of {len(st.session_state.matches_to_review)} matches.")
+    else:
+        st.success("All fuzzy matches have been reviewed!")
+        combined_records = pd.concat(
+                    [st.session_state.matched_records, st.session_state.unmatched_records],
+                    ignore_index=True
+                )
+
+                # Create an Excel file in memory
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            combined_records.to_excel(writer, index=False, sheet_name="Combined Records")
+        output.seek(0)
+
+            # Download the Excel file
+        st.download_button(
+            label="Download Combined Records as Excel",
+            data=output,
+            file_name="combined_records.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        st.success("Matching Successful")
+
+
+
+
+# Ensure matched_records exists and contains data before filtering
+        if "matched_records" in st.session_state and not st.session_state.matched_records.empty:
+            if "Match Ratio" in st.session_state.matched_records.columns:
+                fuzzy_matches_exist = not st.session_state.matched_records[
+                    st.session_state.matched_records["Match Ratio"] < 100
+                ].empty
+            else:
+                fuzzy_matches_exist = False  # No match ratio yet
+        else:
+            fuzzy_matches_exist = False  # No matched records yet
+
+        # Show "Review Fuzzy Matches" button if there are fuzzy matches
+        if fuzzy_matches_exist:
+            if st.button("Review Fuzzy Matches"):
+                # Filter matches with ratio < 100
+                st.session_state.matches_to_review = st.session_state.matched_records[
+                    st.session_state.matched_records["Match Ratio"] < 100
+                ].copy()
+
+                if not st.session_state.matches_to_review.empty:
+                    st.session_state.current_page = "review"  # Switch to the review page
+                    st.session_state.review_index = 0  # Start from the first match
+                else:
+                    st.success("No fuzzy matches to review!")
